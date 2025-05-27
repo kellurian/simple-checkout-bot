@@ -15,12 +15,25 @@ Before running the bot, ensure:
 - [x] Your store credits are available
 - [x] You've run `setup.bat` successfully
 
-## Files Explained
-- `setup.bat`: First-time setup script
-- `launch.bat`: Main script to start the bot
-- `config.json`: Bot configuration settings
-- `bot.py`: Main bot implementation
-- `checkout_bot.log`: Log file (created when bot runs)
+## Project Structure
+- Root directory:
+  - `setup.bat`: First-time setup script
+  - `launch.bat`: Main script to start the bot
+  - `requirements.txt`: Python package dependencies
+  - `WINDOWS_GUIDE.md`: This guide
+  - `setup_log.txt`: Setup process log (created during setup)
+  - `checkout_bot.log`: Bot runtime log (created when bot runs)
+
+- Source code (`src/star_citizen_checkout/`):
+  - `bot.py`: Main bot implementation
+  - `config.json`: Bot configuration settings
+
+## Configuration
+The bot's settings are stored in `src/star_citizen_checkout/config.json`. Default settings:
+- Browser: Chrome
+- Headless mode: Disabled
+- Store credit amount: 1385
+- Ship URL: Aegis Idris-P page
 
 ## Troubleshooting
 1. If setup fails:
@@ -37,6 +50,7 @@ Before running the bot, ensure:
    - "Chrome not found": Install Google Chrome
    - "Virtual environment not found": Run setup.bat first
    - "Missing dependencies": Run setup.bat again
+   - "Configuration file not found": Ensure config.json exists in src/star_citizen_checkout/
 
 ## Need Help?
 Check the main README.md for detailed documentation and support information.

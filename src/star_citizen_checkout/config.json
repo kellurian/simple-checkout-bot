@@ -1,0 +1,8 @@
+{
+    "browser": "chrome",
+    "headless": false,
+    "profile": null,
+    "ship_url": "https://robertsspaceindustries.com/en/pledge/ships/aegis-idris/Idris-P",
+    "store_credit_amount": 1385,
+    "use_existing_browser": true
+}

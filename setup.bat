@@ -6,6 +6,10 @@ REM Create log file
 SET LOG_FILE=setup_log.txt
 ECHO Setup started at %DATE% %TIME% > %LOG_FILE%
 
+REM Set paths
+SET BOT_PATH=src\star_citizen_checkout
+SET REQUIREMENTS_FILE=requirements.txt
+
 REM Function to log messages
 CALL :LOG "Checking system requirements..."
 
@@ -34,6 +38,13 @@ IF %ERRORLEVEL% NEQ 0 (
     START https://www.python.org/downloads/
     PAUSE
     EXIT /B 1
+)
+
+REM Ensure src directory exists
+IF NOT EXIST "%BOT_PATH%" (
+    ECHO Creating bot directory structure...
+    mkdir "%BOT_PATH%"
+    CALL :LOG "Created directory: %BOT_PATH%"
 )
 
 REM Check Python version
