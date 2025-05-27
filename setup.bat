@@ -1,14 +1,19 @@
 @echo off
+SETLOCAL EnableDelayedExpansion
+
+REM Change to the script's directory
+cd /d "%~dp0"
+
 ECHO Star Citizen Checkout Bot - Setup and Configuration
 ECHO ================================================
 
 REM Create log file
-SET LOG_FILE=setup_log.txt
+SET LOG_FILE=%~dp0setup_log.txt
 ECHO Setup started at %DATE% %TIME% > %LOG_FILE%
 
 REM Set paths
-SET BOT_PATH=src\star_citizen_checkout
-SET REQUIREMENTS_FILE=requirements.txt
+SET BOT_PATH=%~dp0src\star_citizen_checkout
+SET REQUIREMENTS_FILE=%~dp0requirements.txt
 
 REM Function to log messages
 CALL :LOG "Checking system requirements..."
@@ -79,7 +84,7 @@ ECHO ✓ Tkinter found
 
 REM Create virtual environment
 ECHO Creating virtual environment...
-python -m venv venv
+python -m venv "%~dp0venv"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Failed to create virtual environment. Please install venv package.
     ECHO   You can try: python -m pip install virtualenv
@@ -89,7 +94,7 @@ ECHO ✓ Virtual environment created
 
 REM Activate virtual environment and prepare for dependencies
 ECHO Activating virtual environment...
-call venv\Scripts\activate.bat
+call "%~dp0venv\Scripts\activate.bat"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Failed to activate virtual environment.
     EXIT /B 1
@@ -109,7 +114,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
 REM Install all dependencies from requirements.txt
 ECHO Installing all packages...
-call venv\Scripts\python -m pip install --no-cache-dir -r "%~dp0requirements.txt"
+call "%~dp0venv\Scripts\python" -m pip install --no-cache-dir -r "%REQUIREMENTS_FILE%"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Failed to install core packages.
     ECHO.
@@ -123,17 +128,13 @@ IF %ERRORLEVEL% NEQ 0 (
     EXIT /B 1
 )
 
-ECHO Installing remaining dependencies...
-call venv\Scripts\python -m pip install --no-cache-dir -r "%~dp0requirements.txt"
+REM Install the bot package in development mode
+call "%~dp0venv\Scripts\python" -m pip install -e "%~dp0"
 IF %ERRORLEVEL% NEQ 0 (
-    ECHO X Some dependencies failed to install.
-    ECHO Core functionality should still work.
-    ECHO.
-    ECHO To retry installing optional dependencies later:
-    ECHO pip install -r requirements.txt
-    ECHO.
-    CHOICE /C YN /M "Continue anyway"
-    IF !ERRORLEVEL! EQU 2 EXIT /B 1
+    ECHO X Failed to install the bot package.
+    ECHO Please try running setup.bat again as administrator.
+    PAUSE
+    EXIT /B 1
 )
 
 ECHO ✓ Dependencies installed
@@ -141,8 +142,8 @@ ECHO ✓ Dependencies installed
 REM Verify core functionality
 ECHO Verifying core packages...
 
-REM Test Selenium
-python -c "import selenium" >nul 2>&1
+REM Test Selenium using virtual environment Python
+call "%~dp0venv\Scripts\python" -c "import selenium" >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Selenium verification failed
     ECHO Please try running setup.bat again
@@ -150,8 +151,8 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 ECHO ✓ Selenium verified
 
-REM Test WebDriver Manager
-python -c "from webdriver_manager.chrome import ChromeDriverManager; ChromeDriverManager().install()" >nul 2>&1
+REM Test WebDriver Manager using virtual environment Python
+call "%~dp0venv\Scripts\python" -c "from webdriver_manager.chrome import ChromeDriverManager; ChromeDriverManager().install()" >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X WebDriver Manager verification failed
     ECHO Please try:
@@ -162,9 +163,9 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 ECHO ✓ WebDriver Manager verified
 
-REM Verify browser setup
+REM Verify browser setup using virtual environment Python
 ECHO Testing browser configuration...
-python -c "from selenium import webdriver; from selenium.webdriver.chrome.service import Service; from webdriver_manager.chrome import ChromeDriverManager; print('Setting up Chrome...'); driver = webdriver.Chrome(service=Service(ChromeDriverManager().install())); print('Chrome launched successfully'); driver.quit(); print('Chrome test complete')"
+call "%~dp0venv\Scripts\python" -c "from selenium import webdriver; from selenium.webdriver.chrome.service import Service; from webdriver_manager.chrome import ChromeDriverManager; print('Setting up Chrome...'); driver = webdriver.Chrome(service=Service(ChromeDriverManager().install())); print('Chrome launched successfully'); driver.quit(); print('Chrome test complete')"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Browser setup verification failed.
     ECHO Please ensure Chrome is installed and up to date.
@@ -179,25 +180,9 @@ CALL :LOG "Setup completed successfully"
 
 ECHO.
 ECHO [36mNext steps:[0m
-ECHO 1. Launch the GUI: launch_gui.bat
-ECHO 2. Configure your settings in the GUI
-ECHO 3. Use the Testing tab to verify everything works
+ECHO 1. Run launch.bat to start the bot
+ECHO 2. Check WINDOWS_GUIDE.md for detailed instructions
 ECHO.
-ECHO [33mNote:[0m The GUI includes all testing functionality
-ECHO       and handles browser configuration automatically.
-ECHO.
-
-REM Create desktop shortcut
-ECHO Creating desktop shortcut...
-SET SHORTCUT_PATH=%USERPROFILE%\Desktop\Star_Citizen_Bot.lnk
-IF EXIST "%SHORTCUT_PATH%" DEL "%SHORTCUT_PATH%"
-ECHO Set oWS = WScript.CreateObject("WScript.Shell") > CreateShortcut.vbs
-ECHO sLinkFile = "%SHORTCUT_PATH%" >> CreateShortcut.vbs
-ECHO Set oLink = oWS.CreateShortcut(sLinkFile) >> CreateShortcut.vbs
-ECHO oLink.TargetPath = "%CD%\launch_gui.bat" >> CreateShortcut.vbs
-ECHO oLink.WorkingDirectory = "%CD%" >> CreateShortcut.vbs
-ECHO oLink.Description = "Star Citizen Checkout Bot" >> CreateShortcut.vbs
-ECHO oLink.Save >> CreateShortcut.vbs
 cscript //nologo CreateShortcut.vbs
 DEL CreateShortcut.vbs
 CALL :LOG "Created desktop shortcut"
