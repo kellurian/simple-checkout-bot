@@ -1,0 +1,20 @@
+{
+    "retry": {
+        "base_interval": 5.0,
+        "max_retries": 100,
+        "max_attempts_per_minute": 10
+    },
+    "browser": {
+        "mode": "headless",
+        "browser_type": "chrome",
+        "profile_path": null
+    },
+    "log_level": "INFO",
+    "debug": false,
+    "selectors": {
+        "proceed_button": "button.a-button.m-cartActionBar__button.-regular.-transaction.-filled.-withShapes.-shapecorner.-shapePadding24.-leftPadding24[data-cy-id='__place-order-button']",
+        "terms_checkbox": "div.a-checkboxDisplay.a-checkbox__wrapper.-interactive[data-cy-id='checkbox__display']",
+        "agree_button": "button.a-button.m-modalFooter__primaryButton.-regular.-interaction.-filled.-withShapes.-shapecorner.-shapePadding24.-leftPadding24[data-cy-id='modal_footer__primary_button']",
+        "out_of_stock_message": "p.m-toast__title.a-fontStyle.-emphasis-3.-no-rich-text[data-cy-id='toast__title']"
+    }
+}

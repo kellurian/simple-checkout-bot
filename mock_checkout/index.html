@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mock Checkout Page</title>
+    <style>
+            /* RSI-specific theme colors */
+            :root {
+                --rsi-blue: #006699;
+                --rsi-dark: #0c1720;
+                --rsi-darker: #070d12;
+                --rsi-light: #f0f0f0;
+                --rsi-error: #ff4444;
+            }
+            
+            body {
+                background-color: var(--rsi-darker);
+                color: var(--rsi-light);
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+            }
+            
+            .checkout-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: var(--rsi-dark);
+                border-radius: 8px;
+            }
+        .a-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .-regular { font-weight: normal; }
+        .-transaction { 
+            background-color: var(--rsi-blue);
+            color: white; 
+        }
+        .-interaction { 
+            background-color: var(--rsi-blue);
+            color: white; 
+        }
+        .-filled { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .-withShapes { position: relative; }
+        .-shapecorner { border-radius: 4px; }
+        .-shapePadding24 { padding: 12px 24px; }
+        .-leftPadding24 { padding-left: 24px; }
+        
+        .a-checkboxDisplay {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .-interactive:hover { background-color: #f5f5f5; }
+        
+        .m-cartActionBar__button {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .m-modalFooter__primaryButton {
+            margin-top: 20px;
+        }
+        
+        .m-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--rsi-error);
+            color: white;
+            padding: 16px;
+            border-radius: 4px;
+            display: none;
+        }
+        .m-toast__title {
+            margin: 0;
+            font-weight: bold;
+        }
+        .-emphasis-3 { font-size: 18px; }
+        .-no-rich-text { white-space: nowrap; }
+        
+        #terms-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--rsi-dark);
+            border: 1px solid var(--rsi-blue);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <h2 style="color: var(--rsi-light); margin-bottom: 20px;">Order Summary</h2>
+        <div class="cart-items">
+            <!-- Placeholder for cart items -->
+            <div class="cart-item" style="border: 1px solid var(--rsi-blue); padding: 10px; margin: 10px 0; border-radius: 4px;">
+                <h3 style="color: var(--rsi-light);">Sample Item</h3>
+                <p style="color: var(--rsi-light);">Quantity: 1</p>
+                <p style="color: var(--rsi-light);">Price: $XX.XX</p>
+            </div>
+        </div>
+        <!-- Proceed to pay button -->
+        <button class="a-button m-cartActionBar__button -regular -transaction -filled -withShapes -shapecorner -shapePadding24 -leftPadding24" 
+                data-cy-id="__place-order-button">
+            Proceed to pay
+        </button>
+
+        <!-- Terms checkbox -->
+        <div class="a-checkboxDisplay a-checkbox__wrapper -interactive"
+             style="background-color: rgba(255, 255, 255, 0.05); border-radius: 4px;"
+             data-cy-id="checkbox__display">
+            <input type="checkbox" id="terms-checkbox">
+            <label for="terms-checkbox" style="color: var(--rsi-light);">I agree to the terms and conditions</label>
+        </div>
+    </div>
+
+    <!-- Terms modal -->
+    <div class="modal-backdrop"></div>
+    <div id="terms-modal">
+        <h3 style="color: var(--rsi-light); border-bottom: 1px solid var(--rsi-blue); padding-bottom: 10px;">Terms and Conditions</h3>
+        <div style="color: var(--rsi-light); margin: 20px 0; max-height: 200px; overflow-y: auto;">
+            <p>Please review and accept the Star Citizen store terms to continue with your purchase.</p>
+            <p>By proceeding, you acknowledge and agree to the following:</p>
+            <ul>
+                <li>All purchases are final and non-refundable</li>
+                <li>Digital items will be delivered to your RSI account</li>
+                <li>Prices and availability are subject to change</li>
+            </ul>
+        </div>
+        <button class="a-button m-modalFooter__primaryButton -regular -interaction -filled -withShapes -shapecorner -shapePadding24 -leftPadding24" 
+                data-cy-id="modal_footer__primary_button">
+            I agree
+        </button>
+    </div>
+
+    <!-- Out of stock toast -->
+    <div class="m-toast">
+        <p class="m-toast__title a-fontStyle -emphasis-3 -no-rich-text" 
+           data-cy-id="toast__title">
+            Unfortunately this item is out of stock
+        </p>
+    </div>
+
+    <script>
+        // State management
+        let isOutOfStock = false;
+
+        // Elements
+        const proceedButton = document.querySelector('[data-cy-id="__place-order-button"]');
+        const termsCheckbox = document.querySelector('#terms-checkbox');
+        const termsModal = document.querySelector('#terms-modal');
+        const modalBackdrop = document.querySelector('.modal-backdrop');
+        const agreeButton = document.querySelector('[data-cy-id="modal_footer__primary_button"]');
+        const outOfStockToast = document.querySelector('.m-toast');
+
+        // Event handlers
+        proceedButton.addEventListener('click', () => {
+            if (!termsCheckbox.checked) {
+                termsModal.style.display = 'block';
+                modalBackdrop.style.display = 'block';
+                return;
+            }
+            if (isOutOfStock) {
+                outOfStockToast.style.display = 'block';
+                setTimeout(() => {
+                    outOfStockToast.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            alert('Success: Proceeding to payment');
+        });
+
+        agreeButton.addEventListener('click', () => {
+            termsCheckbox.checked = true;
+            termsModal.style.display = 'none';
+            modalBackdrop.style.display = 'none';
+        });
+
+        // Debug controls
+        window.toggleOutOfStock = () => {
+            isOutOfStock = !isOutOfStock;
+            console.log('Out of stock:', isOutOfStock);
+        };
+
+        window.simulateSuccess = () => {
+            termsCheckbox.checked = true;
+            isOutOfStock = false;
+            proceedButton.click();
+        };
+
+        window.triggerError = () => {
+            isOutOfStock = true;
+            proceedButton.click();
+        };
+
+        // Apply RSI-specific hover effects
+        proceedButton.addEventListener('mouseenter', () => {
+            proceedButton.style.transform = 'scale(1.02)';
+            proceedButton.style.transition = 'transform 0.2s ease';
+        });
+        proceedButton.addEventListener('mouseleave', () => {
+            proceedButton.style.transform = 'scale(1)';
+        });
+
+        agreeButton.addEventListener('mouseenter', () => {
+            agreeButton.style.transform = 'scale(1.02)';
+            agreeButton.style.transition = 'transform 0.2s ease';
+        });
+        agreeButton.addEventListener('mouseleave', () => {
+            agreeButton.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>

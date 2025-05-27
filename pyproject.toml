@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "star-citizen-checkout"
+version = "0.1.0"
+description = "Star Citizen Checkout Bot"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+selenium = "^4.0"
+selenium-wire = "^5.0"
+webdriver_manager = "^4.0"
+pydantic = "^2.0"
+structlog = "^23.0"
+pytest = "^7.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.0"
+flake8 = "^6.0"
+mypy = "^1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
