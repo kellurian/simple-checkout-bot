@@ -1,8 +1,19 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
 
+REM Store the original directory
+SET "ORIGINAL_DIR=%CD%"
+
 REM Change to the script's directory
 cd /d "%~dp0"
+
+REM Ensure we can find the src directory
+IF NOT EXIST "src\star_citizen_checkout" (
+    ECHO Error: src\star_citizen_checkout directory not found!
+    ECHO Please ensure you're running setup.bat from the correct location.
+    PAUSE
+    EXIT /B 1
+)
 
 ECHO Star Citizen Checkout Bot - Setup and Configuration
 ECHO ================================================
@@ -114,6 +125,19 @@ IF %ERRORLEVEL% NEQ 0 (
 
 REM Install all dependencies from requirements.txt
 ECHO Installing all packages...
+
+REM Upgrade core build tools first
+ECHO Upgrading pip and build tools...
+call "%~dp0venv\Scripts\python" -m pip install --upgrade pip wheel setuptools build
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO X Failed to upgrade build tools.
+    ECHO Please ensure you have internet connectivity and proper permissions.
+    EXIT /B 1
+)
+ECHO ✓ Build tools upgraded
+
+REM Install project requirements
+ECHO Installing project requirements...
 call "%~dp0venv\Scripts\python" -m pip install --no-cache-dir -r "%REQUIREMENTS_FILE%"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Failed to install core packages.
@@ -129,7 +153,35 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 REM Install the bot package in development mode
-call "%~dp0venv\Scripts\python" -m pip install -e "%~dp0"
+ECHO Installing bot package...
+cd /d "%~dp0"
+REM First attempt: Install in development mode
+call "%~dp0venv\Scripts\python" -m pip install --no-cache-dir -v -e .
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO First installation attempt failed, trying alternative method...
+    
+    REM Second attempt: Install using absolute path
+    pushd "%~dp0"
+    call "%~dp0venv\Scripts\python" -m pip install --no-cache-dir -v .
+    popd
+    
+    IF %ERRORLEVEL% NEQ 0 (
+        ECHO X Failed to install package after multiple attempts.
+        ECHO Please ensure you have proper permissions and Python is installed correctly.
+        EXIT /B 1
+    )
+)
+
+REM Verify installation
+call "%~dp0venv\Scripts\python" -c "import star_citizen_checkout; print('Package verified: ' + star_citizen_checkout.__version__)"
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO X Package installation verification failed.
+    EXIT /B 1
+)
+ECHO ✓ Package installed and verified
+
+REM Return to original directory
+cd /d "%ORIGINAL_DIR%"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO X Failed to install the bot package.
     ECHO Please try running setup.bat again as administrator.
